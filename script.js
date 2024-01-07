@@ -1,33 +1,37 @@
-async function getWeather() {
-    const apiKey = 'YOUR_OPENWEATHERMAP_API_KEY'; // Replace with your API key
-    const cityInput = document.getElementById('cityInput').value;
+const apiKey = 'YOUR_OPENWEATHERMAP_API_KEY';
 
-    if (!cityInput) {
-        alert('Please enter a city');
+function getWeather() {
+    const cityInput = document.getElementById('city-input');
+    const cityName = cityInput.value;
+
+    if (!cityName) {
+        alert('Please enter a city name.');
         return;
     }
 
-    const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${cityInput}&appid=${apiKey}&units=metric`;
+    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}`)
+        .then(response => response.json())
+        .then(data => {
+            displayWeather(data);
+        })
+        .catch(error => {
+            console.error('Error fetching weather data:', error);
+        });
+}
 
-    try {
-        const response = await fetch(apiUrl);
-        const data = await response.json();
-
-        if (data.cod === '404') {
-            alert('City not found');
-            return;
-        }
-
-        const weatherInfo = document.getElementById('weatherInfo');
-        weatherInfo.innerHTML = `
+function displayWeather(data) {
+    const weatherDataContainer = document.getElementById('weather-data');
+    
+    if (data.cod !== '404') {
+        const temperature = Math.round(data.main.temp - 273.15);
+        const description = data.weather[0].description;
+        
+        weatherDataContainer.innerHTML = `
             <h2>${data.name}, ${data.sys.country}</h2>
-            <p>${data.weather[0].description}</p>
-            <p>Temperature: ${data.main.temp} °C</p>
-            <p>Humidity: ${data.main.humidity}%</p>
-            <p>Wind Speed: ${data.wind.speed} m/s</p>
+            <p>Temperature: ${temperature}°C</p>
+            <p>Description: ${description}</p>
         `;
-    } catch (error) {
-        console.error('Error fetching weather data:', error);
-        alert('An error occurred while fetching weather data');
+    } else {
+        weatherDataContainer.innerHTML = `<p>City not found</p>`;
     }
 }
